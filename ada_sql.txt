@@ -1,0 +1,262 @@
+create schema study;
+
+CREATE TABLE study.instrutores_ada (
+id serial PRIMARY KEY,
+nome VARCHAR(50) NOT NULL,
+email varchar(50) NOT NUll,
+valor_hora INTEGER NULL,
+certificados VARCHAR(50)
+
+)
+
+select * from study.instrutores_ada
+
+CREATE TABLE study.cursos (
+id serial PRIMARY KEY,
+nome VARCHAR(50) NOT NULL,
+requisitos varchar(255) NUll,
+carga_horaria smallint NULL,
+preco double precision NULL
+
+)
+
+select * from study.cursos
+
+CREATE TABLE study.alunos (
+id serial PRIMARY KEY,
+cpf VARCHAR(11) NOT NULL,
+nome VARCHAR(50) NOT NULL,
+email varchar(50) not NUll,
+fone char(14) not null,
+data_nascimento date null
+
+)
+
+select * from study.alunos
+
+CREATE TABLE study.turmas (
+id serial PRIMARY KEY,
+instrutores_id int not null,
+cursos_id integer not null,
+data_inicio date,
+data_fim date,
+carga_horaria smallint,
+foreign key (cursos_id)
+references study.cursos(id),
+foreign key (instrutores_id)
+references study.instrutores_ada(id)
+)
+
+create table study.matriculas (
+id serial primary key,
+turmas_id integer not null,
+alunos_id integer not null,
+data_matriculado date null,
+constraint fk_turmas_id
+foreign key (turmas_id)
+references study.turmas(id),
+constraint fk_alunos_id
+foreign key (alunos_id)
+references study.alunos(id)
+)
+
+alter table study.alunos rename to aluno_ada
+
+alter table study.aluno_ada rename nome to nome_aluno
+
+select * from study.aluno_ada
+
+alter table study.aluno_ada 
+add teste int
+
+alter table study.aluno_ada 
+alter column teste type varchar(22)
+
+alter table study.aluno_ada
+drop column teste
+
+create schema teste
+
+alter table study.aluno_ada
+set schema teste
+
+drop table teste.aluno_ada
+
+insert into study.aluno_ada(nome_aluno, cpf, email, fone, data_nascimento)
+values('mirele', '1234567890', 'email@email.com', '1234-5678', '1994-05-01')
+
+insert into study.aluno_ada(nome_aluno, cpf, email, fone, data_nascimento)
+values('vanessa', '1234567890', 'email@email.com', '1234-5678', '1984-05-01')
+
+insert into study.aluno_ada(nome_aluno, cpf, email, fone, data_nascimento)
+values('marcos', '1234567890', 'email@email.com', '1234-5678', '1984-05-01')
+returning *
+
+create table study.links(
+id serial primary key,
+url varchar(255) not null,
+name varchar(255) not null,
+description varchar(255),
+last_update date)
+
+insert into study.links (url, name)
+values ('www.postgrestutorial.com', 'postgressql tutorial')
+
+select * from study.links
+
+insert into study.links (url, name)
+values('www.links.com', 'links''s')
+
+update study.aluno_ada set nome_aluno = 'gabriel',
+data_nascimento = '2000-03-03'
+where nome_aluno = 'mirele'
+
+select * from study.aluno_ada
+
+update study.aluno_ada set nome_aluno = 'gabriela',
+data_nascimento = '2000-03-03'
+where id in (1, 2)
+
+delete from study.aluno_ada where id = 1;
+
+delete from study.aluno_ada where id = 2 returning nome_aluno;
+
+delete from study.aluno_ada
+
+begin;
+	lock table study.aluno_ada in access share mode;
+commit;
+
+begin;
+	lock table study.aluno_ada in row share mode;
+commit;
+
+begin;
+	lock table study.aluno_ada in row exclusive mode;
+commit;
+
+explain select * from study.aluno_ada
+
+explain (format json) select * from study.aluno_ada
+
+explain (format yaml) select * from study.aluno_ada
+where id = '1'
+
+explain (costs false) select * from study.aluno_ada
+where id = '3'
+
+explain select max(id) from study.aluno_ada
+where id = '2'
+
+grant privilege_list all
+on nome_tabela
+to role_name
+
+create role joe
+login
+password '123'
+
+create table filmes (
+id int primary key,
+nome varchar(100),
+categoria varchar(100),
+lingua varchar(100)
+)
+
+grant select 
+on filmes
+to joe
+
+insert into filmes(id, nome, categoria,lingua)
+values ('2', 'avatar', 'romance', 'ingles')
+
+select * from filmes
+
+grant insert, update, delete on filmes to joe
+
+revoke select on filmes from joe
+
+create table study.pedidos(
+id serial primary key,
+nome_prato varchar(255) not null,
+preco_prato int not null,
+data_pedido date )
+
+insert into study.pedidos (data_pedido, preco_prato, nome_prato)
+values ('01-03-2023', '10', 'sushi');
+insert into study.pedidos (data_pedido, preco_prato, nome_prato)
+values ('01-03-2023', '30', 'arroz');
+insert into study.pedidos (data_pedido, preco_prato, nome_prato)
+values ('01-03-2023', '20', 'panqueca') 
+
+select * from study.pedidos
+
+select 
+extract(month from data_pedido) as mes,
+extract(year from data_pedido) as ano,
+sum(preco_prato) as total_vendas
+from study.pedidos
+group by extract(month from data_pedido),
+extract(year from data_pedido)
+order by ano, mes
+
+with vendas_por_mes as (
+select 
+	date_part('month', data_pedido) as mes,
+	date_part('year', data_pedido) as ano,
+	sum(preco_prato) as total_vendas
+	
+	from study.pedidos
+	group by ano, mes
+)
+
+select mes, ano, total_vendas from vendas_por_mes
+order by ano, mes
+
+with departamentos (id, nome) as (
+    select
+        departamento.id,
+        departamento.nome
+    from departamento
+),
+colaboradores (id, nome, id_depto) as (
+    select
+        colaborador.id,
+        colaborador.nome,
+        colaborador.depto
+    from colaborador
+    join departamentos on colaborador.id_depto = departamentos.id
+),
+vendas (id_colaborador, venda_total) as (
+    select pedidos.id_colaborador,
+           sum(preco_total)
+    from pedidos
+    join colaboradores on pedidos.id_colaborador = colaboradores.id
+    group by pedidos.id_colaborador
+)
+
+select nome, venda_total
+from vendas
+join colaboradores on vendas.id_colaborador = colaboradores.id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
